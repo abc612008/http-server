@@ -12,10 +12,9 @@ import java.util.Scanner;
  * Created by Null on 2017/4/23.
  */
 public class FileHandler implements RequestHandler {
-    private String httpDocsRoot, serverAbsRoot;
-    public FileHandler(String root, String serverAbsRoot){
+    private String httpDocsRoot;
+    public FileHandler(String root){
         this.httpDocsRoot=root;
-        this.serverAbsRoot=serverAbsRoot;
     }
     public Response handle(Map<String,String> request){
         String path=request.get("Url");
@@ -30,7 +29,7 @@ public class FileHandler implements RequestHandler {
         if(file.isDirectory()){ // is a directory
             if(!path.endsWith("/")){ // the url of a directory should end with /
                 Response response=new Response(STATUS_301, STATUS_301);
-                response.header.put("Location", serverAbsRoot+path+"/");
+                response.header.put("Location", "http://"+request.get("Host")+path+"/");
                 return response;
             }
 

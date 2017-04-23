@@ -29,10 +29,9 @@ public class Connection implements Runnable {
         String line;
         try {
             while((line=in.readLine())!=null) {
-                System.out.println(line);
                 if(line.isEmpty()) break;
 
-                if(line.startsWith("GET")){ // GET /path HTTP/1.1
+                if(line.startsWith("GET")||line.startsWith("POST")){ // GET /path HTTP/1.1
                     requestValues.put("Url",line.split(" ")[1]);
                 }else { // XXX: XXX
                     int position = line.indexOf(":");
@@ -46,7 +45,7 @@ public class Connection implements Runnable {
         } catch (IOException e) {
             throw new BadRequestHeader();
         }
-        System.out.println(requestValues.toString());
+        if(!requestValues.containsKey("Url")) throw new BadRequestHeader();
         return requestValues;
     }
 
@@ -86,7 +85,6 @@ public class Connection implements Runnable {
             try {
                 request = getRequest(socket.getInputStream());
             } catch (BadRequestHeader badRequestHeader) {
-                badRequestHeader.printStackTrace();
                 out.write(makeResponse(RequestHandler.ERROR_400, RequestHandler.ERROR_400).getBytes());
                 return; // Return 400 if fail to read the request.
             }
