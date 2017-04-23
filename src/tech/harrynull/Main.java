@@ -4,10 +4,10 @@ import java.io.*;
 
 public class Main {
     public static void main(String [] args) {
-        int port=8080;
+        int port=Integer.parseInt(args[0]);
         try {
             System.out.println("Waiting for client on port " + port + "...");
-            HttpServer server = new HttpServer(port);
+            HttpServer server = new HttpServer(port, new FileHandler(args[1],"http://127.0.0.1:8080"));
             server.start();
         }catch(IOException e) {
             e.printStackTrace();

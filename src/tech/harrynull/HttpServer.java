@@ -3,10 +3,6 @@ package tech.harrynull;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by Null on 2017-04-22.
@@ -14,16 +10,18 @@ import java.util.Map;
 public class HttpServer {
 
     private ServerSocket serverSocket;
+    private RequestHandler handler;
 
-    public HttpServer(int port) throws IOException {
+    public HttpServer(int port, RequestHandler handler) throws IOException {
         serverSocket = new ServerSocket(port);
+        this.handler=handler;
     }
 
     public void start(){
         while(true) {
             try {
                 Socket socket = serverSocket.accept();
-                new Thread(new Connection(socket)).start();
+                new Thread(new Connection(socket, handler)).start();
             }catch(IOException e) {
                 e.printStackTrace();
                 break;
