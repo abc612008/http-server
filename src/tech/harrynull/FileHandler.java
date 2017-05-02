@@ -1,12 +1,7 @@
 package tech.harrynull;
 
-import javafx.util.Pair;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
-import java.util.Scanner;
 
 /**
  * Created by Null on 2017/4/23.
@@ -16,6 +11,20 @@ public class FileHandler implements RequestHandler {
     public FileHandler(String root){
         this.httpDocsRoot=root;
     }
+
+    private static String getExtension(String filePath){
+        String extension = "";
+
+        int i = filePath.lastIndexOf('.');
+        int p = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+
+        if (i > p) {
+            extension = filePath.substring(i+1);
+        }
+
+        return extension;
+    }
+
     public Response handle(Map<String,String> request){
         String path=request.get("Url");
         File file=new File(httpDocsRoot, path);
@@ -53,9 +62,18 @@ public class FileHandler implements RequestHandler {
             }
         }
         try {
-            return new Response(new Scanner(file).useDelimiter("\\Z").next(), STATUS_200);
+            byte[] fileData = new byte[(int) file.length()];
+            DataInputStream dis = new DataInputStream(new FileInputStream(file));
+            dis.readFully(fileData);
+            dis.close();
+            Response response=new Response(fileData, STATUS_200);
+            response.header.put("Content-Type", MediaTypes.getMediaType(getExtension(file.getName())));
+            return response;
         } catch (FileNotFoundException e) {
             return new Response(ERROR_404, ERROR_404);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Response(ERROR_500, ERROR_500);
         }
     }
 }

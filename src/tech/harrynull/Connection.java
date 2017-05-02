@@ -1,11 +1,7 @@
 package tech.harrynull;
 
-import javafx.util.Pair;
-
 import java.io.*;
 import java.net.Socket;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,33 +45,6 @@ public class Connection implements Runnable {
         return requestValues;
     }
 
-    private static String getHttpTimeDate(){
-        return java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT")));
-    }
-
-    private String makeResponse(String body, String statusCode, Map<String, String> additionalHeader){
-        StringBuilder header= new StringBuilder();
-        if(additionalHeader!=null) {
-            for (Map.Entry<String, String> entry : additionalHeader.entrySet()) {
-                header.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-            }
-        }
-        return "HTTP/1.1 " + statusCode + "\n" +
-                "Date: " + getHttpTimeDate() + "\n" +
-                "Content-Type: text/html; charset=UTF-8\n" +
-                "Content-Encoding: UTF-8\n" +
-                "Content-Length: " + body.length() + "\n" +
-                "Last-Modified: " + getHttpTimeDate() + "\n" +
-                "Server: SimpleHttpServer/1.0\n" +
-                "Accept-Ranges: bytes\n" +
-                "Connection: close\n" + header.toString() +
-                "\n" + body;
-    }
-
-    private String makeResponse(String body, String statusCode){
-        return makeResponse(body, statusCode, null);
-    }
-
     public void run() {
         try {
             Map<String, String> request;
@@ -85,12 +54,12 @@ public class Connection implements Runnable {
             try {
                 request = getRequest(socket.getInputStream());
             } catch (BadRequestHeader badRequestHeader) {
-                out.write(makeResponse(RequestHandler.ERROR_400, RequestHandler.ERROR_400).getBytes());
+                new Response(RequestHandler.ERROR_400, RequestHandler.ERROR_400).writeToStream(out);
                 return; // Return 400 if fail to read the request.
             }
 
             Response response=handler.handle(request);
-            out.write(makeResponse(response.body, response.statusCode, response.header).getBytes());
+            response.writeToStream(out);
 
             socket.close();
         } catch (IOException e) {
